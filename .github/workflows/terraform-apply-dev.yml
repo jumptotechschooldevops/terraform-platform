@@ -1,0 +1,45 @@
+name: Terraform Apply Dev
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'modules/**'
+      - 'envs/dev/**'
+      - '.github/workflows/terraform-apply-dev.yml'
+      - '.github/workflows/terraform-plan.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  apply-dev:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        working-directory: envs/dev
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform plan
+        working-directory: envs/dev
+        run: terraform plan -out=tfplan
+
+      - name: Terraform apply
+        working-directory: envs/dev
+        run: terraform apply -auto-approve tfplan
