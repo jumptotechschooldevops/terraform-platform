@@ -1,0 +1,42 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to destroy (dev/stage/prod)"
+        required: true
+        default: "dev"
+
+env:
+  AWS_REGION: us-east-2
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Set Environment Path
+        run: |
+          echo "ENV_PATH=envs/${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        working-directory: ${{ env.ENV_PATH }}
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform Destroy
+        working-directory: ${{ env.ENV_PATH }}
+        run: terraform destroy -auto-approve
