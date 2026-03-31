@@ -20,7 +20,7 @@ db_name                = "appdb"
 db_username            = "appadmin"
 db_instance_class      = "db.t3.medium"
 db_multi_az            = true
-db_deletion_protection = true
-db_skip_final_snapshot = false
+db_deletion_protection = false
+db_skip_final_snapshot = true
 
 app_secret_json = "{\"APP_ENV\":\"prod\",\"LOG_LEVEL\":\"warn\"}"
